@@ -5,12 +5,6 @@
 
 Developed a comprehensive Factory Management System web application catering to administrators, based on a full stack of technologies, including Node.js, Express.js, MongoDB, HTML, CSS, and JavaScript. This project empowers efficient management of employees, departments, and shifts.
 
-# Factory Management System - Full Stack Project
-
-![Project Image](https://example.com/project-image.png)
-
-Developed a comprehensive Factory Management System web application catering to administrators, based on a full stack of technologies, including Node.js, Express.js, MongoDB, HTML, CSS, and JavaScript. This project empowers efficient management of employees, departments, and shifts.
-
 ## Features
 
 - **User Authentication**: Secure login with JWT-based authentication. Different user roles, including admin and non-admin, offer varying access levels.
