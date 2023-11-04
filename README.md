@@ -40,6 +40,7 @@ To set up the project locally, follow these steps:
    git clone https://github.com/KagBen/FullStack-FactoryMangmentSystem.git
    cd FullStack-FactoryMangmentSystem
 ```
+
 2.Install project dependencies:
 
 
