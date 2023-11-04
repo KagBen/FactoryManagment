@@ -1,7 +1,7 @@
 
 # Factory Management System - Full Stack Project
 
-![Project Image](https://example.com/project-image.png)
+https://github.com/KagBen/FullStack-FactoryMangmentSystem/assets/53075379/ebde8894-44a4-45b5-880f-37f6fe2b35bb
 
 Developed a comprehensive Factory Management System web application catering to administrators, based on a full stack of technologies, including Node.js, Express.js, MongoDB, HTML, CSS, and JavaScript. This project empowers efficient management of employees, departments, and shifts.
 
@@ -77,3 +77,7 @@ SERVER_PORT = '3000'
 - axios
 
 <img width="1023" alt="Screenshot 2023-11-04 at 15 21 07" src="https://github.com/KagBen/FullStack-FactoryMangmentSystem/assets/53075379/43d5f5ff-4c27-4cc9-ac54-51f324314dcb">
+
+
+
+
