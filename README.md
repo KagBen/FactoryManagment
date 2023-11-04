@@ -1,3 +1,4 @@
+
 # Factory Management System - Full Stack Project
 
 ![Project Image](https://example.com/project-image.png)
@@ -72,3 +73,5 @@ SERVER_PORT = '3000'
 - dotenv
 - bcrypt
 - axios
+
+<img width="1023" alt="Screenshot 2023-11-04 at 15 21 07" src="https://github.com/KagBen/FullStack-FactoryMangmentSystem/assets/53075379/43d5f5ff-4c27-4cc9-ac54-51f324314dcb">
