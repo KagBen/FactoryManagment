@@ -39,14 +39,13 @@ To set up the project locally, follow these steps:
    ```bash
    git clone https://github.com/KagBen/FullStack-FactoryMangmentSystem.git
    cd FullStack-FactoryMangmentSystem
-```
-
+   ```
+   
 2.Install project dependencies:
-
 
    ```bash
  npm install
-```
+   ```
 
 3.Create a .env file in the project root directory and add the following environment variables:
 
