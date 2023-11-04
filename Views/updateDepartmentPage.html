@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Update Department Page</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+
+    .bodyForm {
+            
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 30px;
+        }
+
+        .form-container {
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 40px;
+            width: 500px;
+            text-align: center;
+        }
+
+        .update-heading {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            text-align: left;
+            margin-bottom: 5px;
+        }
+
+        .form-select, .form-input {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .form-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 12px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 18px;
+            transition: background-color 0.3s;
+        }
+
+        .form-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+  </head>
+  <body>
+    <script type="module">
+      import { injectHeader } from "./scripts/welcomeHeader.js";
+      injectHeader();
+    </script>
+    <div class="bodyForm">
+    <div class="form-container">
+        <h1>Update Department</h1>
+
+        <!-- Select Department -->
+        <label for="departmentSelect" class="form-label">Select Department:</label>
+        <select id="departmentSelect" class="form-select">
+            <option value="" disabled selected>Choose Department</option>
+            <!-- Populate this select with department names from the API -->
+        </select>
+
+        <!-- Input for New Department Name -->
+        <label for="newDepName" class="form-label">New Department Name:</label>
+        <input type="text" id="newDepName" class="form-input" />
+
+        <!-- Select Employee to Be Manager -->
+        <label for="employeeSelect" class="form-label">Select Employee as Manager:</label>
+        <select id="employeeSelect" class="form-select">
+            <option value="" disabled selected>Choose Manager</option>
+            <!-- Populate this select with employees from the API -->
+        </select>
+
+        <!-- Button to Update Department -->
+        <button id="updateButton" class="form-button">Update Department</button>
+    </div>
+</div>
+    <script type="module">
+      // Function to get the JWT access token from a cookie
+      import { getCookie, updateActions } from "./scripts/cookies.js";
+
+      // Define the API endpoints
+      const departmentsEndpoint = "http://localhost:3000/department";
+      const employeeEndpoint = "http://localhost:3000/employee";
+
+      // Function to populate the department and employee selects
+      function populateSelects() {
+        const departmentSelect = document.getElementById("departmentSelect");
+        const newDepNameInput = document.getElementById("newDepName");
+        const employeeSelect = document.getElementById("employeeSelect");
+
+        // Fetch department data from the API with JWT access token in headers
+        fetch(departmentsEndpoint, {
+          headers: {
+            "jwt-access-token": getCookie("jwt"),
+          },
+        })
+          .then((response) => response.json())
+          .then((departments) => {
+            // Clear existing options, except for the disabled option
+            //departmentSelect.innerHTML = '<option disabled selected>Choose Department</option>';
+
+            // Populate department select with department names
+            departments.forEach((department) => {
+              const departmentId = department._id;
+              const departmentName = department.Name;
+              departmentSelect.innerHTML += `<option value="${departmentId}">${departmentName}</option>`;
+            });
+
+            // Add an event listener to departmentSelect
+            departmentSelect.addEventListener("change", () => {
+              const selectedDepartmentId = departmentSelect.value;
+
+              // Set the department name in the input field
+              newDepNameInput.value = departments.find(
+                (department) => department._id === selectedDepartmentId
+              ).Name;
+
+              // Check if a department manager exists
+              const departmentManagerId = departments.find(
+                (department) => department._id === selectedDepartmentId
+              ).Manager;
+
+              // Set the manager select based on the existing manager or all employees with an empty field
+              if (departmentManagerId) {
+                employeeSelect.value = departmentManagerId;
+              } else {
+                employeeSelect.value = "";
+              }
+            });
+          });
+
+        // Fetch employee data from the API with JWT access token in headers
+        fetch(employeeEndpoint, {
+          headers: {
+            "jwt-access-token": getCookie("jwt"),
+          },
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            // Store the initially selected manager
+            const initiallySelectedManager = employeeSelect.value;
+
+            // Clear existing options, except for the disabled option
+            // employeeSelect.innerHTML = '<option disabled selected>Choose Manager</option';
+
+            // Populate employee select with employee names
+            data.forEach((employee) => {
+              const employeeId = employee._id;
+              const employeeName = `${employee.FirstName} ${employee.LastName}`;
+              employeeSelect.innerHTML += `<option value="${employeeId}">${employeeName}</option>`;
+            });
+
+            // Check if a department manager exists
+            const departmentId =
+              document.getElementById("departmentSelect").value;
+            const departmentManagerId = data.find(
+              (employee) => employee.departmentInfo[0].Manager === departmentId
+            );
+
+            // Set the manager select based on the existing manager or all employees with an empty field
+            employeeSelect.value = departmentManagerId
+              ? departmentManagerId._id
+              : "";
+            // Set the initially selected manager back
+            employeeSelect.value = initiallySelectedManager;
+          });
+      }
+
+      // Handle the update button click
+      document
+        .getElementById("updateButton")
+        .addEventListener("click", async () => {
+          const departmentId =
+            document.getElementById("departmentSelect").value;
+          const newDepName = document.getElementById("newDepName").value;
+          const managerId = document.getElementById("employeeSelect").value
+            ? document.getElementById("employeeSelect").value
+            : null;
+          const depData =
+            managerId != null
+              ? { Name: newDepName, Manager: managerId }
+              : { Name: newDepName };
+          if (departmentId != "") {
+            const updateEndpoint = `http://localhost:3000/department/${departmentId}`;
+            const resp = await fetch(updateEndpoint, {
+              method: "PATCH",
+              headers: {
+                "jwt-access-token": getCookie("jwt"),
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                depData,
+              }),
+            });
+            await updateActions(resp);
+            if (resp.status == 200) {
+              // Update the department name in the select options
+              const departmentSelect =
+                document.getElementById("departmentSelect");
+              const selectedDepartmentId = departmentSelect.value;
+              const selectedOption = departmentSelect.querySelector(
+                `option[value="${selectedDepartmentId}"]`
+              );
+              if (selectedOption) {
+                selectedOption.textContent = newDepName;
+              }
+
+              const confirmation = confirm("Update successful. \n Do you want to perform more updates?");
+        if (confirmation) {
+          // Refresh the page
+          location.reload();//help to update all fields
+        } else {
+          // Redirect to the department page or any other desired page
+          window.location.href = "./department.html"; 
+        }
+              
+            }
+          } else {
+            alert("Please select department");
+          }
+        });
+
+      // Populate the selects with data from the API
+      populateSelects();
+    </script>
+  </body>
+</html>

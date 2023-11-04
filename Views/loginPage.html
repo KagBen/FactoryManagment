@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UserLoginPage</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      body {
+        background-color: #eaf2ff;
+      }
+
+      .demo-user-info,
+      .demo-Admin-info {
+        display: none;
+        position: fixed;
+        bottom: 10px;
+        left: 10px;
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 10px;
+        text-align: left;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      }
+
+      .demo-user-info p ,.demo-Admin-info p {
+        margin: 7px 0;
+      }
+
+      .middle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        margin: 0;
+      }
+
+      .container {
+        width: 500px;
+       
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 50px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        padding: 40px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="demo-user-info" id="demoUserInfo">
+      <p style="text-decoration: underline">demo User (10sec show)</p>
+      <p>username:Antonette</p>
+      <p>email:Shanna@melissa.tv</p>
+    </div>
+    <div class="demo-Admin-info" id="demoAdminInfo">
+      <p style="text-decoration: underline">demo Admin (10sec show)</p>
+      <p>username:Bret</p>
+      <p>email:Sincere@april.biz</p>
+    </div>
+    <h2
+      style="
+        position: sticky;
+        top: 10px;
+        text-align: center;
+        letter-spacing: 1px;
+        font-size: xx-large;
+      "
+    >
+      Welcome to factoryManagement system
+    </h2>
+
+    <div class="middle">
+      <div class="container">
+        <h3 style="margin-bottom: 10px; font-size: x-large">Login</h3>
+
+        <label for="username">Username:</label>
+        <input type="text" id="username" />
+        <label for="email">Email:</label>
+        <input type="email" id="email" />
+
+       
+          <button onclick="login()" style="margin-top: 20px; height: 40px">
+            Login
+          </button>
+          <div style="display: flex; width: 100%;">
+          <button onclick="showDemoUserInfo()" style="margin-top: 20px ; margin-right: 10px;">
+            Show Demo User
+          </button>
+          <button onclick="showDemoAdminInfo()" style="margin-top: 20px">
+            Show Demo Admin
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const url = "http://localhost:3000/auth/login";
+      const login = async () => {
+        const body = {
+          loginData: {
+            username: document.getElementById("username").value,
+            email: document.getElementById("email").value,
+          },
+        };
+
+        const resp = await fetch(url, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(body),
+        });
+
+        if (resp.status === 200) {
+          const data = await resp.json();
+
+          document.cookie = `jwt=${data.accessToken}; path=/; expires=0`;
+          document.cookie = `FullName=${data.user.FullName}; path=/; expires=0`;
+          document.cookie = `userId=${data.user.userId}; path=/; expires=0`;
+          document.cookie = `maxActions=${data.user.maxActions}; path=/; expires=0`;
+          document.cookie = `leftActionsToday=${data.user.leftActionsToday}; path=/; expires=0`;
+          document.cookie = `role=${data.user.role}; path=/; expires=0`;
+          location.href = `./welcomePage.html`;
+        } else {
+          const data = await resp.json();
+          document.getElementById("username").value = "";
+          document.getElementById("email").value = "";
+          alert(data.message);
+        }
+      };
+
+      const showDemoUserInfo = () => {
+        const demoUserInfo = document.getElementById("demoUserInfo");
+        const demoAdminInfo = document.getElementById("demoAdminInfo");
+        demoUserInfo.style.display = "block";
+        demoAdminInfo.style.display = "none";
+        setTimeout(() => {
+          demoUserInfo.style.display = "none";
+        }, 10000); // Hide the demo user info after 5 seconds
+      };
+      const showDemoAdminInfo = () => {
+        const demoAdminInfo = document.getElementById("demoAdminInfo");
+        const demoUserInfo = document.getElementById("demoUserInfo");
+        demoAdminInfo.style.display = "block";
+        demoUserInfo.style.display = "none";
+
+        setTimeout(() => {
+          demoAdminInfo.style.display = "none";
+        }, 10000); // Hide the demo user info after 5 seconds
+      };
+    </script>
+  </body>
+</html>

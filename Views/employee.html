@@ -1,0 +1,330 @@
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Employees Info</title>
+        <link rel="stylesheet" href="style.css" />
+        <style>
+        /* Add your custom styles for the Employees Info page here */
+        /* ... (other styles) */
+        .add-shift-confirm {
+            width: 50px !important;
+            margin: auto !important;
+        }
+
+        /* Style for the "Add Shift" button */
+        .employee-table button.add-shift-button {
+            background-color: #ff5a5f;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            width: 80px; /* Adjust the width as needed */
+        }
+
+        .employee-table button.add-shift-button:hover {
+            background-color: #d4353d;
+        }
+
+        /* Style for the select dropdown */
+        .employee-table select.add-shift-select {
+            width: 150px; /* Adjust the width as needed */
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 10px auto;
+        }
+        .employee-table {
+            width: 90%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+        
+        .employee-table th {
+            background-color: #f2f2f2;
+            text-align: left;
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        .employee-table td {
+            text-align: left;
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+
+        .employee-table a {
+            color: black;
+            text-decoration: none; /* Remove underline from links */
+        }
+
+        .employee-table button {
+            background-color: #ff5a5f;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+
+        .employee-table button:hover {
+            background-color: #d4353d;
+        }
+        .delete-shift-icon {
+            color: red;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        </style>
+    </head>
+    <body>
+        <script type="module">
+        import { injectHeader } from "./scripts/welcomeHeader.js";
+        injectHeader();
+        </script>
+        <br />
+
+        <h1 style="text-align: center">Employees Info</h1>
+        <script type="module">
+        import { formatDate } from "./scripts/dateFunc.js";
+        import { getCookie, clearJwt, updateActions } from "./scripts/cookies.js";
+        import { getData } from "./scripts/getData.js";
+
+        const employees = await getData("employee");
+        const shifts = await getData("shift"); // Fetch the shifts from the server
+        const empShiftData = await getData("empShifts/getEmpShift");
+        if (employees.length > 0) {
+            // Create a table to display the employees
+            const table = document.createElement("table");
+            table.classList.add("employee-table");
+
+            // Create the table header
+            const thead = document.createElement("thead");
+            const headerRow = thead.insertRow();
+            const fullNameHeader = document.createElement("th");
+            fullNameHeader.textContent = "Employee Full Name";
+            const departmentHeader = document.createElement("th");
+            departmentHeader.textContent = "Employee Department";
+            const shiftsHeader = document.createElement("th");
+            shiftsHeader.textContent = "Employee Shifts";
+            const addShiftHeader = document.createElement("th"); // New column for "Add Shift"
+            addShiftHeader.textContent = "Add Shift"; // New column label
+            const actionsHeader = document.createElement("th");
+            actionsHeader.textContent = "Actions";
+            headerRow.appendChild(fullNameHeader);
+            headerRow.appendChild(departmentHeader);
+            headerRow.appendChild(shiftsHeader);
+            headerRow.appendChild(addShiftHeader); // Add the new column to the header
+            headerRow.appendChild(actionsHeader);
+
+            // Create the table body
+            const tbody = document.createElement("tbody");
+            employees.forEach((employee) => {
+            const row = tbody.insertRow();
+
+            // Employee Full Name as a link
+            const fullNameCell = row.insertCell();
+            const fullNameLink = document.createElement("a");
+            fullNameLink.href = `employee-details.html?id=${employee._id}`;
+            fullNameLink.textContent = `${employee.FirstName} ${employee.LastName}`;
+            fullNameCell.appendChild(fullNameLink);
+
+            // Employee Department or "Employee not work in any department"
+            const departmentCell = row.insertCell();
+            if (employee.departmentInfo.length > 0) {
+                const department = employee.departmentInfo[0];
+                departmentCell.textContent = department.Name;
+            } else {
+                departmentCell.textContent = "Employee not work in any department";
+            }
+
+            // Employee Shifts as a list
+            const shiftsCell = row.insertCell();
+            if (employee.employeeShift.length > 0) {
+                const shiftList = document.createElement("ul");
+                employee.employeeShift.forEach((shiftGroup) => {
+                shiftGroup.forEach((shift) => {
+                    const shiftListItem = document.createElement("li");
+                    
+                    shiftListItem.textContent = `Date: ${formatDate(
+                    shift.Date
+                    )}, Start Hour: ${shift.StartHour}, End Hour: ${shift.EndHour}`;
+
+                    // Add a delete icon (X) for each shift
+                    const deleteShiftIcon = document.createElement("span");
+                    deleteShiftIcon.classList.add("delete-shift-icon");
+                    deleteShiftIcon.textContent = "X";
+                    deleteShiftIcon.style.cursor = "pointer";
+                    deleteShiftIcon.style.marginLeft = "10px";
+                    deleteShiftIcon.addEventListener("click", async () => {
+                    const empShiftfind = empShiftData.find((empShift) => {
+                        return (
+                        empShift.ShiftId === shift._id &&
+                        empShift.EmployeeId === employee._id
+                        );
+                    });
+                    const confirmation = confirm(
+                        "Are you sure you want to delete this shift from the employee?"
+                    );
+                    if (confirmation) {
+                        const response = await fetch(
+                        `http://localhost:3000/empShifts/${empShiftfind._id}`,
+                        {
+                            method: "DELETE",
+                            headers: {
+                            "jwt-access-token": getCookie("jwt"),
+                            },
+                        }
+                        );
+
+                        updateActions(response)
+                        if (response.status === 200) {
+                        shiftList.removeChild(shiftListItem);
+                        location.reload();
+                        } else {
+                        alert("Failed to delete the shift. Please try again.");
+                        }
+                    }
+                    });
+
+                    // Append the delete icon to the shift item
+                    shiftListItem.appendChild(deleteShiftIcon);
+                    shiftList.appendChild(shiftListItem);
+                   
+                });
+                });
+                shiftsCell.appendChild(shiftList);
+            } else {
+                shiftsCell.textContent = " ";
+            }
+
+            // Add an "Add Shift" button
+            const addShiftCell = row.insertCell(); // New column for "Add Shift"
+            addShiftCell.style.textAlign = "center";
+            const addShiftButton = document.createElement("button");
+            addShiftButton.textContent = "Add Shift";
+            addShiftButton.classList.add("add-shift-button");
+            const select = document.createElement("select");
+            select.classList.add("add-shift-select");
+            select.style.display = "none"; // Initially hide the select dropdown
+            select.innerHTML = '<option value="">Select a shift</option>';
+            shifts.forEach((shift) => {
+                // Check if the shift is not already registered for the employee
+                if (
+                !employee.employeeShift.some((shiftGroup) =>
+                    shiftGroup.some((s) => s._id === shift._id)
+                )
+                ) {
+                const option = document.createElement("option");
+                option.value = shift._id;
+                option.textContent = `Date: ${formatDate(
+                    shift.Date
+                )}, Start Hour: ${shift.StartHour}, End Hour: ${shift.EndHour}`;
+                select.appendChild(option);
+                }
+            });
+
+            const addShiftConfirmButton = document.createElement("button");
+            addShiftConfirmButton.classList.add("add-shift-confirm");
+            addShiftConfirmButton.textContent = "Add";
+            addShiftConfirmButton.style.display = "none"; // Initially hide the "Add" button
+
+            addShiftButton.addEventListener("click", () => {
+                if (
+                select.style.display === "none" ||
+                select.style.display === ""
+                ) {
+                select.style.display = "block";
+                addShiftConfirmButton.style.display = "block";
+                } else {
+                select.style.display = "none";
+                addShiftConfirmButton.style.display = "none"; // Close the select dropdown on second click
+                }
+            });
+
+            addShiftConfirmButton.addEventListener("click", async () => {
+                const selectedShiftId = select.value;
+                if (selectedShiftId) {
+                const confirmation = confirm(
+                    "Are you sure you want to add this shift to the employee?"
+                );
+
+                if (confirmation) {
+                    // Send a request to associate the shift with the employee
+                    const response = await fetch(
+                    `http://localhost:3000/empShifts`,
+                    {
+                        method: "POST",
+                        headers: {
+                        "jwt-access-token": getCookie("jwt"),
+                        "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                        empShiftData: {
+                            EmployeeId: employee._id, // Replace with the actual EmployeeId
+                            ShiftId: selectedShiftId,
+                        },
+                        }),
+                    }
+                    );
+                    updateActions(response);
+                    location.reload();
+                }
+                } else {
+                alert("Please select a shift to add.");
+                }
+            });
+
+            addShiftCell.appendChild(addShiftButton);
+            addShiftCell.appendChild(select); // Add the select dropdown
+            addShiftCell.appendChild(addShiftConfirmButton); // Add the "Add" button
+            // End of "Add Shift" button
+
+            // Add a "Delete" button
+            const actionsCell = row.insertCell();
+            actionsCell.style.textAlign = "center";
+            const deleteButton = document.createElement("button");
+            deleteButton.textContent = "Delete";
+            deleteButton.addEventListener("click", async () => {
+                const confirmation = confirm(
+                `Are you sure you want to delete the employee "${employee.FirstName} ${employee.LastName}"?`
+                );
+                if (confirmation) {
+                // Send an API request to delete the employee on the server
+                const resp = await fetch(
+                    `http://localhost:3000/employee/${employee._id}`,
+                    {
+                    method: "DELETE",
+                    headers: { "jwt-access-token": `${getCookie("jwt")}` },
+                    }
+                );
+                await updateActions(resp);
+                if (resp.status == 200) {
+                    table.deleteRow(row.rowIndex);
+                }
+                }
+            });
+            actionsCell.appendChild(deleteButton);
+            });
+
+            // Append the table to the document
+            table.appendChild(thead);
+            table.appendChild(tbody);
+            document.body.appendChild(table);
+        } else {
+            const text = document.createElement("h2");
+            text.innerText = "No Employees found";
+            document.body.appendChild(text);
+        }
+        </script>
+    </body>
+    </html>

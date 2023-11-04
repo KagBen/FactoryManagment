@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Update Shift Page</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      .bodyForm {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: 30px;
+      }
+
+      .form-container {
+        background-color: #fff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        border-radius: 8px;
+        padding: 40px;
+        width: 500px;
+        text-align: center;
+      }
+
+      .update-heading {
+        font-size: 24px;
+        margin-bottom: 20px;
+      }
+
+      .form-label {
+        display: block;
+        text-align: left;
+        margin-bottom: 5px;
+      }
+
+      .form-select,
+      .form-input {
+        width: 100%;
+        padding: 10px;
+        margin: 8px 0;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 16px;
+      }
+
+      .form-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        padding: 12px;
+        cursor: pointer;
+        width: 100%;
+        font-size: 18px;
+        transition: background-color 0.3s;
+      }
+
+      .form-button:hover {
+        background-color: #0056b3;
+      }
+    </style>
+  </head>
+  <body>
+    <script type="module">
+      import { injectHeader } from "./scripts/welcomeHeader.js";
+      injectHeader();
+    </script>
+    <div class="bodyForm">
+      <div class="form-container">
+        <h1>Update Shift</h1>
+
+        <!-- Select Shift -->
+        <label for="shiftSelect" class="form-label">Select Shift:</label>
+        <select id="shiftSelect" class="form-select">
+          <option value="" disabled selected>Choose Shift</option>
+          <!-- Populate this select with shift names or IDs from the API -->
+        </select>
+
+        <!-- Input for Shift Date -->
+        <label for="shiftDate" class="form-label">Shift Date:</label>
+        <input type="date" id="shiftDate" class="form-input" />
+
+        <!-- Input for Start Time -->
+        <label for="startTime" class="form-label">Start Time:</label>
+        <input type="number" id="startTime" class="form-input" />
+
+        <!-- Input for End Time -->
+        <label for="endTime" class="form-label">End Time:</label>
+        <input type="number" id="endTime" class="form-input" />
+
+        <!-- Button to Update Shift -->
+        <button id="updateButton" class="form-button">Update Shift</button>
+      </div>
+    </div>
+    <script type="module">
+      // Function to get the JWT access token from a cookie
+      import { getCookie, updateActions } from "./scripts/cookies.js";
+      import { formatDate } from "./scripts/dateFunc.js";
+      // Define the API endpoint for shifts
+      const shiftsEndpoint = "http://localhost:3000/shift";
+
+      // Function to populate the shift select
+      function populateShiftSelect() {
+        const shiftSelect = document.getElementById("shiftSelect");
+        const shiftDateInput = document.getElementById("shiftDate");
+
+        const startTimeInput = document.getElementById("startTime");
+        const endTimeInput = document.getElementById("endTime");
+
+        // Fetch shift data from the API with JWT access token in headers
+        fetch(shiftsEndpoint, {
+          headers: {
+            "jwt-access-token": getCookie("jwt"),
+          },
+        })
+          .then((response) => response.json())
+          .then((shifts) => {
+            // Clear existing options, except for the disabled option
+            shiftSelect.innerHTML =
+              '<option value="" disabled selected>Choose Shift</option>';
+
+            // Populate shift select with shift names or IDs
+            shifts.forEach((shift,index) => {
+              const shiftId = shift._id; // Assuming a unique ID for each shift
+              const shiftInfo = `Shift ${index+1} on ${formatDate(shift.Date)}`;
+              shiftSelect.innerHTML += `<option value="${shiftId}">${shiftInfo}</option>`;
+            });
+
+            // Add an event listener to shiftSelect
+            shiftSelect.addEventListener("change", () => {
+              const selectedShiftId = shiftSelect.value;
+
+              // Set the shift details in the input fields
+              const selectedShift = shifts.find(
+                (shift) => shift._id === selectedShiftId
+              );
+              shiftDateInput.value = formatDate(selectedShift.Date);
+              startTimeInput.value = selectedShift.StartHour;
+              endTimeInput.value = selectedShift.EndHour;
+            });
+          });
+      }
+
+      // Handle the update button click
+      document
+        .getElementById("updateButton")
+        .addEventListener("click", async () => {
+          const shiftId = document.getElementById("shiftSelect").value;
+          const shiftDate = document.getElementById("shiftDate").value;
+          const startTime = document.getElementById("startTime").value;
+          const endTime = document.getElementById("endTime").value;
+
+          if (shiftId != "") {
+            const updateEndpoint = `${shiftsEndpoint}/${shiftId}`;
+            const resp = await fetch(updateEndpoint, {
+              method: "PATCH",
+              headers: {
+                "jwt-access-token": getCookie("jwt"),
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                shiftData: {
+                  Date: new Date(shiftDate), 
+                  StartHour: parseInt(startTime), 
+                  EndHour: parseInt(endTime),
+                },
+              }),
+            });
+            await updateActions(resp);
+            if (resp.status == 200) {
+              const confirmation = confirm(
+                "Update successful. Do you want to perform more updates?"
+              );
+              if (confirmation) {
+                // Refresh the page to update all fields
+                location.reload();
+              } else {
+                // Redirect to the shift page or any other desired page
+                window.location.href = "./shifts.html";
+              }
+            }
+          } else {
+            alert("Please select a shift");
+          }
+        });
+
+      // Populate the select with data from the API
+      populateShiftSelect();
+    </script>
+  </body>
+</html>

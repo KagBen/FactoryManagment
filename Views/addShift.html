@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Shift</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .bodyForm {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 30px;
+        }
+
+        .form-container {
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 40px;
+            width: 500px;
+            text-align: center;
+        }
+
+        .update-heading {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            text-align: left;
+            margin-bottom: 5px;
+        }
+
+        .form-select,
+        .form-input {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .form-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 12px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 18px;
+            transition: background-color 0.3s;
+        }
+
+        .form-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <script type="module">
+        import { injectHeader } from "./scripts/welcomeHeader.js";
+        injectHeader();
+    </script>
+
+    <div class="bodyForm">
+        <div class="form-container">
+            <h2 class="update-heading">Add Shift</h2>
+            <form id="addShiftForm" style="display: flex; flex-direction: column">
+                <br />
+                <label for="shiftDate" class="form-label">Shift Date:</label>
+                <input type="date" id="shiftDate" name="shiftDate" required class="form-input" />
+                <label for="startTime" class="form-label">Start Time:</label>
+                <input type="number" id="startTime" name="startTime" required class="form-input" min="0" max="23"/>
+                <label for="endTime" class="form-label">End Time:</label>
+                <input type="number" id="endTime" name="endTime" required class="form-input" min="0" max="23"/>
+                <br />
+                <button type="button" id="submitShiftButton" class="form-button" style="align-self: center">
+                    Add Shift
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { getCookie, clearJwt, updateActions } from "./scripts/cookies.js";
+        const addShiftForm = document.getElementById("addShiftForm");
+        const submitShiftButton = document.getElementById("submitShiftButton");
+
+        submitShiftButton.addEventListener("click", async () => {
+            const shiftDate = document.getElementById("shiftDate").value;
+            const startTime = document.getElementById("startTime").value;
+            const endTime = document.getElementById("endTime").value;
+
+            // Check if the fields are not empty
+            if (shiftDate && startTime && endTime) {
+                const confirmation = confirm(`Are you sure you want to add a shift with the following details?\n
+Shift Date: ${shiftDate}\n
+Start Time: ${startTime}\n
+End Time: ${endTime}\n`);
+
+                if (confirmation) {
+                    const shiftData = {
+                        Date: new Date(shiftDate),   // Convert the date string to a Date object
+                        StartHour: parseInt(startTime), // Parse the start time as a number
+                        EndHour: parseInt(endTime),     // Parse the end time as a number
+                    };
+
+                    const resp = await fetch("http://localhost:3000/shift", {
+                        method: "POST",
+                        headers: {
+                            "jwt-access-token": getCookie("jwt"),
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ shiftData }), // Send the shift data as an object
+                    });
+                    await updateActions(resp);
+                }
+            } else {
+                alert("Please fill in all fields.");
+            }
+        });
+    </script>
+</body>
+</html>

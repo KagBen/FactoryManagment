@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WelcomePage</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      body {
+        font-family: "Arial", sans-serif;
+        background-color: #f4f4f4;
+      }
+
+      .container2 {
+        width: 100%;
+        margin: 0 auto;
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        padding: 40px;
+      }
+    </style>
+  </head>
+  <body>
+    <script type="module">
+      import { injectHeader } from "./scripts/welcomeHeader.js";
+      injectHeader();
+    </script>
+
+    <div class="container2">
+      <h1>Welcome to Factory Management</h1>
+      <p>
+        Welcome to the Factory Management web application, a comprehensive
+        solution for efficiently managing your factory operations. Here's what
+        sets our system apart:
+      </p>
+      <ul>
+        <li>
+          <strong>Secure Login:</strong> Users log in securely with JWT-based
+          authentication.
+        </li>
+        <li>
+          <strong>Detailed Employee Information:</strong> View employees'
+          detailed information, including their shifts.
+        </li>
+        <li>
+          <strong>Employee and Department Management:</strong> Create, edit, or
+          delete employees and departments effortlessly.
+        </li>
+        <li>
+          <strong>Efficient Allocation:</strong> Easily allocate employees to
+          their respective departments.
+        </li>
+        <li>
+          <strong>Shift Management:</strong> Manage shifts and assign employees
+          efficiently for optimized workforce management.
+        </li>
+        <li>
+          <strong>Action Limits:</strong> Set daily action limits for users to
+          maintain system integrity.
+        </li>
+        <li>
+          <strong>Automatic Logout:</strong> Users are logged out automatically
+          if they exceed their daily action limits, ensuring fair usage.
+        </li>
+        <li>
+          <strong>User Profiles:</strong> Access user profiles with action limit
+          details for effective monitoring and user management.
+        </li>
+        <li>
+          <strong>Role-Based Access:</strong> Admins have the privilege to
+          fetch all users, ensuring controlled access to user data.
+        </li>
+      </ul>
+
+      <div class="info-section">
+        <p>
+          Our user-friendly interface, robust security features, and RESTful
+          architecture guarantee efficient factory management. With Factory
+          Management, you're in control of your factory operations. Get started
+          today!
+        </p>
+        <p>
+          <strong>Technology Stack:</strong>
+        </p>
+
+        <ul>
+          <li>
+            <strong>Server:</strong> Node.js and Express.js for building a
+            robust backend.
+          </li>
+          <li>
+            <strong>Database:</strong> MongoDB for efficient data storage and
+            retrieval.
+          </li>
+          <li>
+            <strong>Frontend:</strong> HTML, CSS, and JavaScript for a seamless
+            user interface.
+          </li>
+          <li>
+            <strong>JWT Authentication:</strong> Secure login and user
+            management using JSON Web Tokens , roles managment with jwt.
+          </li>
+          <li>
+            <strong>Session Management:</strong> Implementing server-side
+            sessions for user interaction.
+          </li>
+          <li>
+            <strong>Cookie Management:</strong> Handling cookies for a
+            personalized user experience.
+          </li>
+          <li>
+            <strong>RESTful API:</strong> Designing a RESTful API for seamless
+            communication.
+          </li>
+        </ul>
+      </div>
+    </div>
+  </body>
+</html>

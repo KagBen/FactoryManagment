@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shifts</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      /* Custom styles for the Shifts and Employees page */
+      body {
+        font-family: Arial, sans-serif;
+      }
+
+      h1 {
+        text-align: center;
+        color: #333;
+      }
+
+      .shift-employee-table {
+        width: 95%;
+        margin: 20px auto;
+        border-collapse: collapse;
+        background-color: #fff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        border-radius: 8px;
+      }
+
+      .shift-employee-table th {
+        background-color: #f2f2f2;
+        text-align: left;
+        padding: 10px;
+        border: 1px solid #ddd;
+        text-align: center;
+      }
+
+      .shift-employee-table td {
+        text-align: left;
+        padding: 10px;
+        border: 1px solid #ddd;
+      }
+
+      .shift-employee-table ul {
+        padding: 0;
+      }
+
+      .shift-employee-table ul li {
+        margin-bottom: 5px;
+      }
+
+      .shift-employee-table th,
+      .shift-employee-table td {
+        padding: 10px;
+      }
+
+      .shift-employee-table th {
+        background-color: #f2f2f2;
+      }
+
+      .shift-employee-table th,
+      .shift-employee-table td {
+        border: 1px solid #ddd;
+      }
+      /* Style for the "Add Shift" button */
+      .shift-employee-table button.add-employee-button {
+        background-color: #ff5a5f;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s;
+        width: 60px; /* Adjust the width as needed */
+      }
+
+      .shift-employee-table button.add-employee-button:hover {
+        background-color: #d4353d;
+      }
+
+      /* Style for the select dropdown */
+      .shift-employee-table select.add-employee-select {
+        width: 150px; /* Adjust the width as needed */
+        padding: 5px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        margin: 10px auto;
+      }
+
+      .delete-shift-icon {
+        color: red;
+        cursor: pointer;
+        margin-left: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Add your header script here if needed -->
+    <script type="module">
+      import { injectHeader } from "./scripts/welcomeHeader.js";
+      injectHeader();
+    </script>
+    <br />
+    <h1 style="text-align: center">Shifts Info</h1>
+    <script type="module">
+      import { getCookie, clearJwt, updateActions } from "./scripts/cookies.js";
+      import { getData } from "./scripts/getData.js";
+      import { formatDate } from "./scripts/dateFunc.js";
+
+      // Fetch the data for shifts and employees
+      const shiftEmployeesData = await getData(
+        "empShifts/getAllEmployeesInShift"
+      );
+      const allEmployees = await getData("employee");
+      const allEmp = allEmployees.map((employee) => {
+        return {
+          _id: employee._id,
+          FirstName: employee.FirstName,
+          LastName: employee.LastName,
+        };
+      });
+
+      if (shiftEmployeesData.length > 0) {
+        // Create a table to display shifts and employees
+        const table = document.createElement("table");
+        table.classList.add("shift-employee-table");
+
+        // Create the table header
+        const thead = document.createElement("thead");
+        const headerRow = thead.insertRow();
+        const shiftIdHeader = document.createElement("th"); // New column for Shift ID
+        shiftIdHeader.textContent = "Shift ID"; // Column label
+        const shiftDateHeader = document.createElement("th");
+        shiftDateHeader.textContent = "Shift Date";
+        const shiftTimeHeader = document.createElement("th");
+        shiftTimeHeader.textContent = "Shift Time";
+        const employeesHeader = document.createElement("th");
+        employeesHeader.textContent = "Employees";
+        headerRow.appendChild(shiftIdHeader); // Add the Shift ID column to the header
+        headerRow.appendChild(shiftDateHeader);
+        headerRow.appendChild(shiftTimeHeader);
+        headerRow.appendChild(employeesHeader);
+        // Add an "Add Employees" column
+        const addEmployeesHeader = document.createElement("th");
+        addEmployeesHeader.textContent = "Add Employees";
+        headerRow.appendChild(addEmployeesHeader);
+        // Create the table body
+        const tbody = document.createElement("tbody");
+
+        // Iterate through shiftEmployeesData and create rows for each shift
+        shiftEmployeesData.forEach((shiftData, index) => {
+          const shiftInfo = shiftData.shiftInfo;
+          const employeesInfo = shiftData.employeesInfo;
+
+          const employeeInShiftData = employeesInfo.map((employeeShift) => {
+            return {
+              _id: employeeShift.employeeInfo._id,
+              FirstName: employeeShift.employeeInfo.FirstName,
+              LastName: employeeShift.employeeInfo.LastName,
+            };
+          });
+
+          const missingEmployees = allEmp.filter(
+            (emp1) => !employeeInShiftData.some((emp2) => emp2._id === emp1._id)
+          );
+
+          const row = tbody.insertRow();
+
+          // Shift ID
+          const shiftIdCell = row.insertCell(); // New column for Shift ID
+          shiftIdCell.textContent = `Shift ${index + 1}`;
+
+          // Shift Date
+          const shiftDateCell = row.insertCell();
+          shiftDateCell.textContent = formatDate(shiftInfo.Date);
+
+          // Shift Time (Start - End) with leading zeros
+          const startTime =
+            shiftInfo.StartHour < 10
+              ? `0${shiftInfo.StartHour}`
+              : shiftInfo.StartHour;
+          const endTime =
+            shiftInfo.EndHour < 10
+              ? `0${shiftInfo.EndHour}`
+              : shiftInfo.EndHour;
+          const shiftTimeCell = row.insertCell();
+          shiftTimeCell.textContent = `${startTime} - ${endTime}`;
+
+          // Employees
+          const employeesCell = row.insertCell();
+          const employeeList = document.createElement("ul");
+
+          if (employeesInfo.length > 0) {
+            employeesInfo.forEach((employeeInfo) => {
+              const employeeListItem = document.createElement("li");
+              const fullName = `${employeeInfo.employeeInfo.FirstName} ${employeeInfo.employeeInfo.LastName}`;
+              // Create a "Delete" icon (X) and add a click event to remove the employee
+              const deleteEmployeeIcon = document.createElement("span");
+              deleteEmployeeIcon.classList.add("delete-shift-icon");
+              deleteEmployeeIcon.textContent = "X";
+              deleteEmployeeIcon.style.cursor = "pointer";
+              deleteEmployeeIcon.style.marginLeft = "10px";
+              deleteEmployeeIcon.addEventListener("click", async () => {
+                console.log(employeeInfo.empShiftId);
+                const confirmation = confirm(
+                  "Are you sure you want to delete this shift from the employee?"
+                );
+                if (confirmation) {
+                  const response = await fetch(
+                    `http://localhost:3000/empShifts/${employeeInfo.empShiftId}`,
+                    {
+                      method: "DELETE",
+                      headers: {
+                        "jwt-access-token": getCookie("jwt"),
+                      },
+                    }
+                  );
+
+                  updateActions(response);
+                  if (response.status === 200) {
+                    location.reload();
+                  } else {
+                    alert("Failed to delete the shift. Please try again.");
+                  }
+                }
+              });
+              employeeListItem.textContent = fullName;
+              employeeListItem.appendChild(deleteEmployeeIcon);
+              employeeList.appendChild(employeeListItem);
+            });
+          } else {
+            employeesCell.textContent = "No employees working in this shift.";
+          }
+
+          employeesCell.appendChild(employeeList);
+
+          // Add an "Add Employee" column to the row
+          const addEmployeeCell = row.insertCell();
+          addEmployeeCell.style.textAlign = "center";
+
+          // Create a select dropdown
+          const select = document.createElement("select");
+          select.classList.add("add-employee-select");
+          select.innerHTML = '<option value="">Select an employee</option>';
+
+          // Populate the select dropdown with missing employees
+          missingEmployees.forEach((employee) => {
+            const option = document.createElement("option");
+            option.value = employee._id;
+            option.textContent = `${employee.FirstName} ${employee.LastName}`;
+            select.appendChild(option);
+          });
+
+          // Create an "Add" button
+          const addEmployeeButton = document.createElement("button");
+          addEmployeeButton.textContent = "Add";
+          addEmployeeButton.classList.add("add-employee-button");
+
+          // Handle adding an employee to the shift
+          addEmployeeButton.addEventListener("click", async () => {
+            const selectedEmployeeId = select.value;
+            if (selectedEmployeeId) {
+              const confirmation = confirm(
+                "Are you sure you want to add this employee to the shift?"
+              );
+              if (confirmation) {
+                // Send a request to associate the employee with the shift
+                const response = await fetch(
+                  `http://localhost:3000/empShifts`,
+                  {
+                    method: "POST",
+                    headers: {
+                      "jwt-access-token": getCookie("jwt"),
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      empShiftData: {
+                        EmployeeId: selectedEmployeeId,
+                        ShiftId: shiftData.shiftInfo._id, // Use the actual ShiftId
+                      },
+                    }),
+                  }
+                );
+
+                updateActions(response);
+                if (response.status === 200) {
+                  location.reload();
+                } else {
+                  alert(
+                    "Failed to add the employee to the shift. Please try again."
+                  );
+                }
+              }
+            } else {
+              alert("Please select an employee to add.");
+            }
+          });
+
+          // Append the select dropdown and "Add" button to the cell
+          addEmployeeCell.appendChild(select);
+          addEmployeeCell.appendChild(addEmployeeButton);
+        });
+
+        // Append the table to the document
+        table.appendChild(thead);
+        table.appendChild(tbody);
+        document.body.appendChild(table);
+      } else {
+        const text = document.createElement("h2");
+        text.innerText = "No shift data found";
+        document.body.appendChild(text);
+      }
+    </script>
+  </body>
+</html>

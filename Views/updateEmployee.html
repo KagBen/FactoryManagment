@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Update Employee Page</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      .bodyForm {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: 30px;
+      }
+
+      .form-container {
+        background-color: #fff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        border-radius: 8px;
+        padding: 40px;
+        width: 500px;
+        text-align: center;
+      }
+
+      .update-heading {
+        font-size: 24px;
+        margin-bottom: 20px;
+      }
+
+      .form-label {
+        display: block;
+        text-align: left;
+        margin-bottom: 5px;
+      }
+
+      .form-select,
+      .form-input {
+        width: 100%;
+        padding: 10px;
+        margin: 8px 0;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 16px;
+      }
+
+      .form-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        padding: 12px;
+        cursor: pointer;
+        width: 100%;
+        font-size: 18px;
+        transition: background-color 0.3s;
+      }
+
+      .form-button:hover {
+        background-color: #0056b3;
+      }
+    </style>
+  </head>
+  <body>
+    <script type="module">
+      import { injectHeader } from "./scripts/welcomeHeader.js";
+      injectHeader();
+    </script>
+    <div class="bodyForm">
+      <div class="form-container">
+        <h1>Update Employee</h1>
+
+        <!-- Select Employee -->
+        <label for="employeeSelect" class="form-label">Select Employee:</label>
+        <select id="employeeSelect" class="form-select">
+          <option value="" disabled selected>Choose Employee</option>
+          <!-- Populate this select with employee names from the API -->
+        </select>
+
+        <!-- Input for New Employee First Name -->
+        <label for="newFirstName" class="form-label">New First Name:</label>
+        <input type="text" id="newFirstName" class="form-input" />
+
+        <!-- Input for New Employee Last Name -->
+        <label for="newLastName" class="form-label">New Last Name:</label>
+        <input type="text" id="newLastName" class="form-input" />
+
+        <!-- Input for New Employee Start Work Year -->
+        <label for="newStartYear" class="form-label"
+          >New Start Work Year:</label
+        >
+        <input type="number" id="newStartYear" class="form-input" />
+
+        <!-- Select Department for Employee -->
+        <label for="departmentSelect" class="form-label"
+          >Select Department:</label
+        >
+        <select id="departmentSelect" class="form-select">
+          <option value="" disabled selected>Choose Department</option>
+          <!-- Populate this select with department names from the API -->
+        </select>
+
+        <!-- Button to Update Employee -->
+        <button id="updateButton" class="form-button">Update Employee</button>
+      </div>
+    </div>
+    <script type="module">
+      // Function to get the JWT access token from a cookie
+      import { getCookie, updateActions } from "./scripts/cookies.js";
+
+      // Define the API endpoints for employees and departments
+      const employeesEndpoint = "http://localhost:3000/employee";
+      const departmentsEndpoint = "http://localhost:3000/department";
+
+      // Function to populate the employee select
+      function populateEmployeeSelect() {
+        const employeeSelect = document.getElementById("employeeSelect");
+        const newFirstNameInput = document.getElementById("newFirstName");
+        const newLastNameInput = document.getElementById("newLastName");
+        const newStartYearInput = document.getElementById("newStartYear");
+        const departmentSelect = document.getElementById("departmentSelect");
+
+        // Fetch employee data from the API with JWT access token in headers
+        fetch(employeesEndpoint, {
+          headers: {
+            "jwt-access-token": getCookie("jwt"),
+          },
+        })
+          .then((response) => response.json())
+          .then((employees) => {
+            // Clear existing options, except for the disabled option
+            employeeSelect.innerHTML =
+              '<option value="" disabled selected>Choose Employee</option>';
+
+            // Populate employee select with employee names
+            employees.forEach((employee) => {
+              const employeeId = employee._id;
+              const employeeName = `${employee.FirstName} ${employee.LastName}`;
+              employeeSelect.innerHTML += `<option value="${employeeId}">${employeeName}</option>`;
+            });
+
+            // Add an event listener to employeeSelect
+            employeeSelect.addEventListener("change", () => {
+              const selectedEmployeeId = employeeSelect.value;
+
+              // Set the employee details in the input fields
+              const selectedEmployee = employees.find(
+                (employee) => employee._id === selectedEmployeeId
+              );
+              newFirstNameInput.value = selectedEmployee.FirstName;
+              newLastNameInput.value = selectedEmployee.LastName;
+              newStartYearInput.value = selectedEmployee.StartWorkYear;
+
+              // Find the corresponding department for the selected employe
+              const departmentId = selectedEmployee.DepId;
+              if (departmentId) {
+                // Set the departmentSelect dropdown to the department of the selected employee
+                departmentSelect.value = departmentId;
+              }
+            });
+          });
+      }
+
+      // Function to populate the department select
+      function populateDepartmentSelect() {
+        const departmentSelect = document.getElementById("departmentSelect");
+
+        // Fetch department data from the API with JWT access token in headers
+        fetch(departmentsEndpoint, {
+          headers: {
+            "jwt-access-token": getCookie("jwt"),
+          },
+        })
+          .then((response) => response.json())
+          .then((departments) => {
+            // Clear existing options, except for the disabled option
+            departmentSelect.innerHTML =
+              '<option value="" disabled selected>Choose Department</option>';
+
+            // Populate department select with department names
+            departments.forEach((department) => {
+              const departmentId = department._id;
+              const departmentName = department.Name;
+              departmentSelect.innerHTML += `<option value="${departmentId}">${departmentName}</option>`;
+            });
+          });
+      }
+
+      // Handle the update button click
+      document
+        .getElementById("updateButton")
+        .addEventListener("click", async () => {
+          const employeeId = document.getElementById("employeeSelect").value;
+          const newFirstName = document.getElementById("newFirstName").value;
+          const newLastName = document.getElementById("newLastName").value;
+          const newStartYear = parseInt(
+            document.getElementById("newStartYear").value,
+            10
+          );
+          const departmentId =
+            document.getElementById("departmentSelect").value;
+
+          if (employeeId != "") {
+            const updateEndpoint = `http://localhost:3000/employee/${employeeId}`;
+            const resp = await fetch(updateEndpoint, {
+              method: "PATCH",
+              headers: {
+                "jwt-access-token": getCookie("jwt"),
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                empData: {
+                  FirstName: newFirstName,
+                  LastName: newLastName,
+                  StartWorkYear: newStartYear,
+                  DepId: departmentId,
+                },
+              }),
+            });
+            await updateActions(resp);
+            if (resp.status == 200) {
+              const confirmation = confirm(
+                "Update successful. Do you want to perform more updates?"
+              );
+              if (confirmation) {
+                // Refresh the page to update all fields
+                location.reload();
+              } else {
+                // Redirect to the employee page or any other desired page
+                window.location.href = "./employee.html";
+              }
+            }
+          } else {
+            alert("Please select an employee");
+          }
+        });
+
+      // Populate the select with data from the API
+      populateEmployeeSelect();
+      populateDepartmentSelect();
+    </script>
+  </body>
+</html>

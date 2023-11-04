@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Users Page</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      .user-table {
+        width: 90%;
+        margin: 20px auto;
+        border-collapse: collapse;
+        background-color: #fff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        border-radius: 8px;
+      }
+
+      .user-table th {
+        background-color: #f2f2f2;
+        text-align: left;
+        padding: 10px;
+        border: 1px solid #ddd;
+        text-align: center;
+      }
+
+      .user-table td {
+        text-align: left;
+        padding: 10px;
+        border: 1px solid #ddd;
+      }
+    </style>
+  </head>
+  <body>
+    <br>
+    <h1 style="text-align: center">Users Info</h1>
+    <script type="module">
+      import { injectHeader } from "./scripts/welcomeHeader.js";
+      injectHeader();
+    </script>
+    <script type="module">
+      import { getCookie } from "./scripts/cookies.js";
+        import {getData} from "./scripts/getData.js";
+      const usersData =await getData("auth")
+        
+      // Create a table to display the users
+      const table = document.createElement("table");
+      table.classList.add("user-table");
+
+      // Create the table header
+      const thead = document.createElement("thead");
+      const headerRow = thead.insertRow();
+      const userNameHeader = document.createElement("th");
+      userNameHeader.textContent = "User Name";
+      const userRoleHeader = document.createElement("th");
+      userRoleHeader.textContent = "User Role";
+      const userMaxActionsHeader = document.createElement("th");
+      userMaxActionsHeader.textContent = "User Max Actions";
+      headerRow.appendChild(userNameHeader);
+      headerRow.appendChild(userRoleHeader);
+      headerRow.appendChild(userMaxActionsHeader);
+
+      // Create the table body
+      const tbody = document.createElement("tbody");
+      usersData.forEach((user) => {
+        const row = tbody.insertRow();
+
+        // User Name as plain text
+        const userNameCell = row.insertCell();
+        userNameCell.textContent = user.FullName;
+
+        // User Role as plain text
+        const userRoleCell = row.insertCell();
+        userRoleCell.textContent = user.role;
+
+        // User Max Actions as plain text
+        const userMaxActionsCell = row.insertCell();
+        userMaxActionsCell.textContent = user.maxActions;
+      });
+
+      // Append the table to the document
+      table.appendChild(thead);
+      table.appendChild(tbody);
+      document.body.appendChild(table);
+    </script>
+  </body>
+</html>

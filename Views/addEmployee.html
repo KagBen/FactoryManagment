@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Employee</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .bodyForm {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 30px;
+        }
+
+        .form-container {
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 40px;
+            width: 500px;
+            text-align: center;
+        }
+
+        .update-heading {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            text-align: left;
+            margin-bottom: 5px;
+        }
+
+        .form-select,
+        .form-input {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .form-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 12px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 18px;
+            transition: background-color 0.3s;
+        }
+
+        .form-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+    <script type="module">
+        import { injectHeader } from "./scripts/welcomeHeader.js";
+        injectHeader();
+    </script>
+
+    <div class="bodyForm">
+        <div class="form-container">
+            <h2 class="update-heading">Add Employee</h2>
+            <form id="addEmployeeForm" style="display: flex; flex-direction: column">
+                <br />
+                <label for="firstName" class="form-label">First Name:</label>
+                <input type="text" id="firstName" name="firstName" required class="form-input" />
+                <br />
+                <label for "lastName" class="form-label">Last Name:</label>
+                <input type="text" id="lastName" name="lastName" required class="form-input" />
+                <br />
+                <label for="department" class="form-label">Department:</label>
+                <select id="department" name="department" class="form-select">
+                    <!-- Options will be fetched and populated using JavaScript -->
+                </select>
+                <br />
+                <button type="button" id="submitEmployeeButton" class="form-button" style="align-self: center">
+                    Add Employee
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { getCookie, clearJwt, updateActions } from "./scripts/cookies.js";
+        const addEmployeeForm = document.getElementById("addEmployeeForm");
+        const submitEmployeeButton = document.getElementById("submitEmployeeButton");
+        const departmentSelect = document.getElementById("department");
+
+        // Fetch departments and populate the department selector
+        const fetchDepartments = async () => {
+            try {
+                const response = await fetch("http://localhost:3000/department", {
+                    headers: {
+                        "jwt-access-token": getCookie("jwt")
+                    }
+                });
+                if (response.ok) {
+                    const departments = await response.json();
+                    departments.forEach((department) => {
+                        const option = document.createElement("option");
+                        option.value = department._id;
+                        option.textContent = department.Name;
+                        departmentSelect.appendChild(option);
+                    });
+                } else {
+                    console.error("Failed to fetch departments.");
+                }
+            } catch (error) {
+                console.error("Error fetching departments:", error);
+            }
+        };
+
+        fetchDepartments();
+
+        submitEmployeeButton.addEventListener("click", async () => {
+            const firstName = document.getElementById("firstName").value;
+            const lastName = document.getElementById("lastName").value;
+            const selectedDepartmentId = departmentSelect.value;
+            const currentYear = new Date().getFullYear();
+
+            // Check if the fields are not empty
+            if (firstName && lastName && selectedDepartmentId) {
+                const confirmation = confirm(`Are you sure you want to add an employee with the following details?\n\nFirst Name: ${firstName}\nLast Name: ${lastName}\nDepartment: ${departmentSelect.options[departmentSelect.selectedIndex].text}\n`);
+
+                if (confirmation) {
+                    const empData = {
+                        FirstName: firstName,
+                        LastName: lastName,
+                        DepId: selectedDepartmentId,
+                        StartWorkYear: currentYear
+                    };
+
+                    const resp = await fetch("http://localhost:3000/employee", {
+                        method: "POST",
+                        headers: {
+                            "jwt-access-token": getCookie("jwt"),
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ empData }),
+                    });
+
+                    await updateActions(resp);
+                }
+            } else {
+                alert("Please fill in all fields.");
+            }
+        });
+    </script>
+</body>
+
+</html>

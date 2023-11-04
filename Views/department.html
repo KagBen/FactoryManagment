@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Departments</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      /* Add your custom styles for the Departments Info page here */
+      .department-table {
+        width: 90%;
+        margin: 20px auto;
+        border-collapse: collapse;
+        background-color: #fff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        border-radius: 8px;
+       
+      }
+
+      .department-table th {
+        background-color: #f2f2f2;
+        text-align: left;
+        padding: 10px;
+        border: 1px solid #ddd;
+        text-align: center;
+      }
+
+      .department-table td {
+        text-align: left;
+        padding: 10px;
+        border: 1px solid #ddd;
+        
+      }
+
+      .department-table a {
+        color: black;
+        text-decoration: none; /* Remove underline from links */
+      }
+
+      .department-table button {
+        background-color: #007BFF;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s;
+        width: 100%;
+      }
+
+      .department-table button:hover {
+        background-color: #0056b3;
+      }
+    </style>
+  </head>
+  <body>
+    <br />
+    <h1 style="text-align: center">Departments Info</h1>
+    <script type="module">
+      import { injectHeader } from "./scripts/welcomeHeader.js";
+      injectHeader();
+    </script>
+    <script type="module">
+      import { getCookie, clearJwt, updateActions } from "./scripts/cookies.js";
+      import { getData } from "./scripts/getData.js";
+      const departments = await getData("department");
+      if (departments.length > 0) {
+        // Create a table to display the departments
+        const table = document.createElement("table");
+        table.classList.add("department-table");
+
+        // Create the table header
+        const thead = document.createElement("thead");
+        const headerRow = thead.insertRow();
+        const departmentNameHeader = document.createElement("th");
+        departmentNameHeader.textContent = "Department Name";
+        const managerNameHeader = document.createElement("th");
+        managerNameHeader.textContent = "Manager Name";
+        const employeeNamesHeader = document.createElement("th");
+        employeeNamesHeader.textContent = "Employee Names";
+        const deleteButtonHeader = document.createElement("th");
+        deleteButtonHeader.textContent = "Delete";
+        headerRow.appendChild(departmentNameHeader);
+        headerRow.appendChild(managerNameHeader);
+        headerRow.appendChild(employeeNamesHeader);
+        headerRow.appendChild(deleteButtonHeader);
+
+        // Create the table body
+        const tbody = document.createElement("tbody");
+        departments.forEach((department) => {
+          const row = tbody.insertRow();
+
+          // Department Name as plain text
+          const departmentNameCell = row.insertCell();
+          departmentNameCell.textContent = department.Name;
+
+          // Manager Name or "No Manager" text
+          const managerNameCell = row.insertCell();
+          if (department.managerInfo.length > 0) {
+            const manager = department.managerInfo[0];
+            managerNameCell.textContent = `${manager.FirstName} ${manager.LastName}`;
+          } else {
+            managerNameCell.textContent = "No Manager exist in this department";
+          }
+
+          // Employee Names or "No Employees" text
+          const employeeNamesCell = row.insertCell();
+          if (department.EmployeesInfo.length > 0) {
+            const employeeList = document.createElement("ul");
+            department.EmployeesInfo.forEach((employee) => {
+              const employeeListItem = document.createElement("li");
+              employeeListItem.textContent = `${employee.FirstName} ${employee.LastName}`;
+              employeeList.appendChild(employeeListItem);
+            });
+            employeeNamesCell.appendChild(employeeList);
+          } else {
+            employeeNamesCell.textContent = "No Employees exist in this department";
+          }
+
+          // Add a "Delete" button column
+          const deleteButtonCell = row.insertCell();
+          const deleteButton = document.createElement("button");
+          deleteButton.textContent = "Delete";
+
+          // Add an event listener to handle deleting the department
+          deleteButton.addEventListener("click", async () => {
+            const confirmation = confirm(
+              `Are you sure you want to delete the department "${department.Name}"?`
+            );
+            if (confirmation) {
+              // Send an API request to delete the department on the server
+              const resp = await fetch(
+                `http://localhost:3000/department/${department._id}`,
+                {
+                  method: "DELETE",
+                  headers: { "jwt-access-token": `${getCookie("jwt")}` },
+                }
+              );
+              await updateActions(resp);
+              if (resp.status == 200) {
+                table.deleteRow(row.rowIndex);
+              }
+            }
+          });
+          deleteButtonCell.appendChild(deleteButton);
+        });
+
+        // Append the table to the document
+        table.appendChild(thead);
+        table.appendChild(tbody);
+        document.body.appendChild(table);
+      } else {
+        const text = document.createElement("h2");
+        text.innerText = "No Departments found";
+        document.body.appendChild(text);
+      }
+    </script>
+  </body>
+</html>

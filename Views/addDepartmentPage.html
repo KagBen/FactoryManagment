@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Department</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+
+        .bodyForm {
+                
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                margin-top: 30px;
+            }
+    
+            .form-container {
+                background-color: #fff;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+                border-radius: 8px;
+                padding: 40px;
+                width: 500px;
+                text-align: center;
+            }
+    
+            .update-heading {
+                font-size: 24px;
+                margin-bottom: 20px;
+            }
+    
+            .form-label {
+                display: block;
+                text-align: left;
+                margin-bottom: 5px;
+            }
+    
+            .form-select, .form-input {
+                width: 100%;
+                padding: 10px;
+                margin: 8px 0;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                font-size: 16px;
+            }
+    
+            .form-button {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background-color: #007BFF;
+                color: #fff;
+                border: none;
+                border-radius: 4px;
+                padding: 12px;
+                cursor: pointer;
+                width: 100%;
+                font-size: 18px;
+                transition: background-color 0.3s;
+            }
+    
+            .form-button:hover {
+                background-color: #0056b3;
+            }
+        </style>
+</head>
+<body>
+    <script type="module">
+        import { injectHeader } from "./scripts/welcomeHeader.js";
+        injectHeader();
+    </script>
+
+    <div class="bodyForm">
+        <div class="form-container">
+            <h2 class="update-heading">Add Department</h2>
+            <form id="addDepartmentForm" style="display: flex; flex-direction: column">
+                <br />
+                <label for="departmentName" class="form-label">Department Name:</label>
+                <input type="text" id="departmentName" name="departmentName" required class="form-input" />
+                <br />
+                <button type="button" id="submitDepartmentButton" class="form-button" style="align-self: center">
+                    Add Department
+                </button>
+            </form>
+        </div>
+    </div>
+
+
+    <script type="module">
+        import { getCookie, clearJwt, updateActions } from "./scripts/cookies.js";
+        const addDepartmentForm = document.getElementById("addDepartmentForm");
+        const submitDepartmentButton = document.getElementById("submitDepartmentButton");
+
+        submitDepartmentButton.addEventListener("click", async () => {
+            const departmentName = document.getElementById("departmentName").value;
+
+            // Check if the fields are not empty
+            if (departmentName) {
+                const confirmation = confirm(`Are you sure you want to add a department with the following details?\n\nDepartment Name: ${departmentName}\n`);
+
+                if (confirmation) {
+                    const resp = await fetch("http://localhost:3000/department", {
+                        method: "POST",
+                        headers: {
+                            "jwt-access-token": getCookie("jwt"),
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ depData: { Name: departmentName } }),
+                    });
+                    await updateActions(resp);
+                }
+            }
+            else {
+                alert("Please fill in all fields.");
+            }
+        });
+    </script>
+    <p style="text-align: center; margin-top: 30px;text-decoration: underline;">assume the adding department and only after department created can add manager to it...(in update)</h3>
+</body>
+</html>
