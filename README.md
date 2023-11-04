@@ -41,6 +41,20 @@ To set up the project locally, follow these steps:
    cd FullStack-FactoryMangmentSystem
 
 2.Install project dependencies:
+   ```bash
+   npm install
+
+
+3.Create a .env file in the project root directory and add the following environment variables:
+   ````bash
+   MONGODB_PATH = "mongodb://localhost:27017/factoryMangmentDb"
+JWT_ACCESS_SECRET_TOKEN = "YanivAradF&ina4Pr0j3ct"
+SESSION_SECRET_KEY = "$96HashedKeyBcrypt"
+SERVER_PORT = '3000'
+
+4.Start the server:
+   ```bash
+   npm start
 
 ## Dependencies
 - express
